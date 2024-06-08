@@ -1,27 +1,19 @@
+use clust::{ApiKey, Client as Claude};
 use dotenv::dotenv;
-use postgres::{Client, NoTls};
+use std::env;
 use std::io::{stdin, stdout, Write};
-use std::os::unix::process;
-use std::{any::Any, env};
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
+mod db;
 
 fn main() {
     dotenv().ok();
-    let db_host = env::var("DB_HOST").unwrap_or_else(|_| "".to_string());
-    let db_port = env::var("DB_PORT").unwrap_or_else(|_| "".to_string());
-    let db_user = env::var("DB_USER").unwrap_or_else(|_| "".to_string());
-    let db_password = env::var("DB_PASSWORD").unwrap_or_else(|_| "".to_string());
-    let db_name = env::var("DB_NAME").unwrap_or_else(|_| "".to_string());
 
-    let db_connection_string = format!(
-        "postgres://{}:{}@{}:{}/{}",
-        db_user, db_password, db_host, db_port, db_name
-    );
-    println!("{}", db_connection_string.to_string());
+    let mut db_client = db::establish_db_connection();
 
-    // let mut client = Client::connect(&db_connection_string, NoTls).unwrap();
+    let api_key = env::var("ANTHROPIC_API_KEY").unwrap_or_else(|_| "".to_string());
+    let claude_client = Claude::from_api_key(ApiKey::new(api_key));
 
     let stdin = stdin();
     let mut stdout = stdout().into_raw_mode().unwrap();

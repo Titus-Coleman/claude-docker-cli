@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+clust = { version = "0.8.0", features = ["full"] }
 dotenv = "0.15.0"
 postgres = "0.19.7"
 termion = "4.0.0"
