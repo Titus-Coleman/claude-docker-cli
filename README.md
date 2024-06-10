@@ -4,14 +4,14 @@ A simple docker-based CLI for running Anthropic's Claude LLM. This is built prim
 
 ## Functionality
 
-- Launches Docker image \*only tested on M2 Mac
+- Launches Docker image only tested on M2 Mac
+- Retreives schema from local env path
+- Input: natural langage query from user
+- Output: raw SQL to be sent to running cargo lambda
 
 ### TODO:
 
-- Retreives schema from local env path
 - Connects to local PostgresDB via env
-- Input: natural langage query from user
-- Output: raw SQL to be sent to running cargo lambda
 - Receives response from cargo lambda
 
 ### Step 1: Build Image
