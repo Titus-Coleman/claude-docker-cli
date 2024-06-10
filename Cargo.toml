@@ -4,7 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0.86"
 clust = { version = "0.8.0", features = ["full"] }
 dotenv = "0.15.0"
 postgres = "0.19.7"
 termion = "4.0.0"
+tokio = { version = "1.38.0", features = ["full"] }
+tokio-stream = "0.1.15"

@@ -1,54 +1,39 @@
+use clust::messages::ClaudeModel;
+use clust::messages::MaxTokens;
+use clust::messages::Message;
+use clust::messages::MessagesRequestBody;
+use clust::messages::SystemPrompt;
 use clust::{ApiKey, Client as Claude};
 use dotenv::dotenv;
 use std::env;
-use std::io::{stdin, stdout, Write};
-use termion::event::Key;
-use termion::input::TermRead;
-use termion::raw::IntoRawMode;
 mod db;
+mod user_input;
 
-fn main() {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     dotenv().ok();
 
-    let mut db_client = db::establish_db_connection();
+    let user_input = user_input::user_input();
+    // let db_client = db::establish_db_connection();
 
     let api_key = env::var("ANTHROPIC_API_KEY").unwrap_or_else(|_| "".to_string());
     let claude_client = Claude::from_api_key(ApiKey::new(api_key));
 
-    let stdin = stdin();
-    let mut stdout = stdout().into_raw_mode().unwrap();
+    let model = ClaudeModel::Claude3Opus20240229;
+    let messages = vec![Message::user(user_input)];
+    let max_tokens = MaxTokens::new(1024, model)?;
+    let system_prompt = SystemPrompt::new("Hello");
+    let request_body = MessagesRequestBody {
+        model,
+        messages,
+        max_tokens,
+        system: Some(system_prompt),
+        ..Default::default()
+    };
 
-    write!(
-        stdout,
-        "So what are you looking for? (press Esc to finish):\r\n"
-    )
-    .unwrap();
-    stdout.flush().unwrap();
+    let response = claude_client.create_a_message(request_body).await?;
 
-    let mut text = String::new();
+    println!("Result: \n{}", response);
 
-    for key in stdin.keys() {
-        match key.unwrap() {
-            Key::Esc => break,
-            Key::Char('\n') => {
-                text.push('\n');
-                write!(stdout, "\r\n").unwrap();
-            }
-            Key::Char(c) => {
-                text.push(c);
-                write!(stdout, "{}", c).unwrap();
-            }
-            Key::Backspace => {
-                if !text.is_empty() {
-                    text.pop();
-                    write!(stdout, "\x08 \x08").unwrap();
-                }
-            }
-            _ => {}
-        }
-        stdout.flush().unwrap();
-    }
-
-    write!(stdout, "\r\nYou entered:\r\n{}\r\n", text).unwrap();
-    stdout.flush().unwrap();
+    Ok(())
 }
