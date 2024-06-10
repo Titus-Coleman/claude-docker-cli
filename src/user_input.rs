@@ -19,10 +19,11 @@ pub fn user_input() -> String {
     for key in stdin.keys() {
         match key.unwrap() {
             Key::Esc => break,
-            Key::Char('\n') => {
-                text.push('\n');
-                write!(stdout, "\r\n").unwrap();
-            }
+            // Key::Char('\n') => {
+            //     text.push('\n');
+            //     write!(stdout, "\r\n").unwrap();
+            // }
+            Key::Char('\n') => break,
             Key::Char(c) => {
                 text.push(c);
                 write!(stdout, "{}", c).unwrap();

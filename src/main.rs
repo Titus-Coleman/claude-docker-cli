@@ -2,10 +2,13 @@ use clust::messages::ClaudeModel;
 use clust::messages::MaxTokens;
 use clust::messages::Message;
 use clust::messages::MessagesRequestBody;
+use clust::messages::MessagesResponseBody;
 use clust::messages::SystemPrompt;
 use clust::{ApiKey, Client as Claude};
 use dotenv::dotenv;
+use indicatif::ProgressBar;
 use std::env;
+use std::time::Duration;
 mod db;
 mod user_input;
 
@@ -31,9 +34,38 @@ async fn main() -> anyhow::Result<()> {
         ..Default::default()
     };
 
-    let response = claude_client.create_a_message(request_body).await?;
+    let pb = ProgressBar::new_spinner();
+    pb.enable_steady_tick(Duration::from_millis(100));
 
-    println!("Result: \n{}", response);
+    pb.set_message("Waiting for response...");
+
+    let raw_response_result: MessagesResponseBody =
+        claude_client.create_a_message(request_body).await?;
+
+    pb.finish_with_message("Response received!");
+
+    println!(
+        "Raw Result: \n{:?}",
+        raw_response_result
+            .content
+            .flatten_into_text()
+            .unwrap()
+            .to_string()
+    );
 
     Ok(())
 }
+
+/*
+System Prompt needs the rust version of:
+
+def ask_claude(query, schema):
+    prompt = f"""Here is the schema for a database:
+
+{schema}
+
+Given this schema, can you output a SQL query to answer the following question? Only output the SQL query and nothing else.
+
+Question: {query}
+"""
+*/
