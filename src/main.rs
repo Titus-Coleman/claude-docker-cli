@@ -10,14 +10,16 @@ use indicatif::ProgressBar;
 use std::env;
 use std::time::Duration;
 mod db;
+mod prompt;
+mod schema;
 mod user_input;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
+    let schema = schema::schema();
 
     let user_input = user_input::user_input();
-    // let db_client = db::establish_db_connection();
 
     let api_key = env::var("ANTHROPIC_API_KEY").unwrap_or_else(|_| "".to_string());
     let claude_client = Claude::from_api_key(ApiKey::new(api_key));
@@ -25,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
     let model = ClaudeModel::Claude3Opus20240229;
     let messages = vec![Message::user(user_input)];
     let max_tokens = MaxTokens::new(1024, model)?;
-    let system_prompt = SystemPrompt::new("Hello");
+    let system_prompt = SystemPrompt::new(prompt::prompt(schema));
     let request_body = MessagesRequestBody {
         model,
         messages,
@@ -55,17 +57,3 @@ async fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
-
-/*
-System Prompt needs the rust version of:
-
-def ask_claude(query, schema):
-    prompt = f"""Here is the schema for a database:
-
-{schema}
-
-Given this schema, can you output a SQL query to answer the following question? Only output the SQL query and nothing else.
-
-Question: {query}
-"""
-*/
