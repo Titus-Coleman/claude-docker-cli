@@ -7,6 +7,7 @@ use clust::messages::SystemPrompt;
 use clust::{ApiKey, Client as Claude};
 use dotenv::dotenv;
 use indicatif::ProgressBar;
+use sqlformat::{format, FormatOptions, QueryParams};
 use std::env;
 use std::time::Duration;
 mod db;
@@ -46,14 +47,13 @@ async fn main() -> anyhow::Result<()> {
 
     pb.finish_with_message("Response received!");
 
-    println!(
-        "Raw Result: \n{:?}",
-        raw_response_result
-            .content
-            .flatten_into_text()
-            .unwrap()
-            .to_string()
+    let formatted_query = format(
+        &raw_response_result.content.flatten_into_text().unwrap(),
+        &QueryParams::None,
+        FormatOptions::default(),
     );
+
+    println!("Formatted Result:\n{}", formatted_query);
 
     Ok(())
 }
