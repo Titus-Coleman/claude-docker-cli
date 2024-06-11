@@ -11,8 +11,9 @@ A simple docker-based CLI for running Anthropic's Claude LLM. This is built prim
 
 ### TODO:
 
-- Connects to local PostgresDB via env
-- Receives response from cargo lambda
+- Sends SQL to cargo lambda
+- Configure CLI instance to wait and listen for response
+- Receives response from cargo lambda with data from DB
 
 ### Step 1: Build Image
 

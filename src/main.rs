@@ -13,16 +13,21 @@ use std::time::Duration;
 mod db;
 mod prompt;
 mod schema;
+mod sql_response_validator;
 mod user_input;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
+
+    let api_key = env::var("ANTHROPIC_API_KEY").unwrap_or_else(|_| {
+        panic!("ANTHROPIC_API_KEY environment variable not found. Please add a .env with the correct variable name. Ending program.");
+    });
+
     let schema = schema::schema();
 
     let user_input = user_input::user_input();
 
-    let api_key = env::var("ANTHROPIC_API_KEY").unwrap_or_else(|_| "".to_string());
     let claude_client = Claude::from_api_key(ApiKey::new(api_key));
 
     let model = ClaudeModel::Claude3Opus20240229;
@@ -45,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
     let raw_response_result: MessagesResponseBody =
         claude_client.create_a_message(request_body).await?;
 
-    pb.finish_with_message("Response received!");
+    pb.finish_with_message("Response received::");
 
     let formatted_query = format(
         &raw_response_result.content.flatten_into_text().unwrap(),
@@ -54,6 +59,10 @@ async fn main() -> anyhow::Result<()> {
     );
 
     println!("Formatted Result:\n{}", formatted_query);
+
+    let checked_query = sql_response_validator::sql_response_validator(formatted_query).await;
+
+    println!("Final Result:\n{}", checked_query);
 
     Ok(())
 }

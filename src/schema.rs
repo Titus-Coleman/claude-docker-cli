@@ -1,7 +1,6 @@
-use dotenv::dotenv;
 use std::env;
 use std::fs;
-use std::io::{self, Read};
+use std::io::Read;
 
 pub fn schema() -> String {
     let schema_file = env::var("SCHEMA_PATH").unwrap_or_else(|_| "".to_string());
